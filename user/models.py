@@ -6,4 +6,4 @@ class Users(models.Model):
     age = models.IntegerField(null=True)
     mail_address = models.EmailField()
     created_add = models.DateTimeField(auto_now_add=True)
-    update_add = models.DateTimeField(auto_now=True)
+    updated_add = models.DateTimeField(auto_now=True)
