@@ -10,7 +10,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'first_name', 
             'last_name',
             'age',
-            'mail_adress',
+            'mail_address',
             'created_add',
             'updated_add'
             )
