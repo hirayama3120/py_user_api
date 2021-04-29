@@ -20,4 +20,5 @@ from user import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', views.UserListCreateAPIView.as_view()),
+    path('api/users/<pk>/', views.UserRetrieveUpdateDeleteAPIView.as_view()),
 ]

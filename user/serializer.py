@@ -6,12 +6,16 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = [
+            'id',
             'first_name',
             'last_name',
             'age',
             'mail_address'
         ]
         extra_kwargs = {
+            'id': {
+                'required': True,
+            },
             'first_name': {
                 'required': True,
                 'allow_blank': False,
