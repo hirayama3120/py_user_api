@@ -5,5 +5,6 @@ class Users(models.Model):
     last_name = models.CharField(max_length=32)
     age = models.IntegerField(null=True)
     mail_address = models.EmailField()
+    delete_flag = models.BooleanField(default=False)
     created_add = models.DateTimeField(auto_now_add=True)
     updated_add = models.DateTimeField(auto_now=True)
