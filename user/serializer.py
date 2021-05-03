@@ -10,7 +10,10 @@ class UsersSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'age',
-            'mail_address'
+            'mail_address',
+            'delete_flag',
+            'created_add',
+            'updated_add'
         ]
         extra_kwargs = {
             'id': {

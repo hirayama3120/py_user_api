@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.timezone import localtime
 from rest_framework.test import APITestCase
 
 from ..models import Users
@@ -26,6 +27,9 @@ class TestUserListCreateAPIView(APITestCase):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'age': user.age,
-            'mail_address': user.mail_address
+            'mail_address': user.mail_address,
+            'delete_flag': False,
+            'created_add': str(localtime(user.created_add)).replace(' ', 'T'),
+            'updated_add': str(localtime(user.updated_add)).replace(' ', 'T')
         }
         self.assertJSONEqual(response.content, expected_json_dict)
