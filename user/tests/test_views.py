@@ -9,78 +9,82 @@ class TestUserListCreateAPIView(APITestCase):
 
     URL = '/api/users/'
 
-    @classmethod
-    def setUpClass(self):
-        Users.objects.create(
-            first_name='fname1', last_name='lname1', age=11, mail_address='test1@example.com'
-        )
-        Users.objects.create(
-            first_name='fname2', last_name='lname2', age=22, mail_address='test2@example.com'
-        )
-        Users.objects.create(
-            first_name='fname3', last_name='lname3', age=33, mail_address='test3@example.com'
-        )
-
-
     def test_user_list_success(self):
-        """ Usersモデルへの一覧取得APIへのGETリクエスト (正常系) """
+        """ Usersモデルへの一覧取得APIへのGETリクエスト (正常系: 取得件数0件) """
+
+        # テスト用Userオブジェクト登録
+        for i in range(3):
+            Users.objects.create(
+                first_name=f'fname{i}',
+                last_name=f'lname{i}',
+                age=i,
+                mail_address=f'test{i}@example.com'
+            )
+
+        # レスポンス期待値
+        expected_json = []
+        users = Users.objects.all()
+
+        for i in range(len(users)):
+            user = users[i]
+            user_json = {
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'age': user.age,
+                'mail_address': user.mail_address,
+                'delete_flag': user.delete_flag,
+                'created_add': str(localtime(user.created_add)).replace(' ', 'T'),
+                'updated_add': str(localtime(user.updated_add)).replace(' ', 'T')
+            }
+            expected_json.append(user_json)
+
+        # APIリクエスト実行
         response = self.client.get(self.URL, format='json')
 
+        # レスポンスの内容を検証
         self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, expected_json)
 
-        users = Users.objects.all()
-        user1 = users[0]
-        user2 = users[1]
-        user3 = users[2]
+    def test_user_list_success_with_user_count_0(self):
+        """ Usersモデルへの一覧取得APIへのGETリクエスト (正常系: 取得件数0件) """
+        # レスポンス期待値
+        expected_json = []
 
-        expected_json_dict = [
-            {
-                'id': user1.id,
-                'first_name': user1.first_name,
-                'last_name': user1.last_name,
-                'age': user1.age,
-                'mail_address': user1.mail_address,
-                'delete_flag': user1.delete_flag,
-                'created_add': str(localtime(user1.created_add)).replace(' ', 'T'),
-                'updated_add': str(localtime(user1.updated_add)).replace(' ', 'T')
-            },{
-                'id': user2.id,
-                'first_name': user2.first_name,
-                'last_name': user2.last_name,
-                'age': user2.age,
-                'mail_address': user2.mail_address,
-                'delete_flag': user2.delete_flag,
-                'created_add': str(localtime(user2.created_add)).replace(' ', 'T'),
-                'updated_add': str(localtime(user2.updated_add)).replace(' ', 'T')
-            },{
-                'id': user3.id,
-                'first_name': user3.first_name,
-                'last_name': user3.last_name,
-                'age': user3.age,
-                'mail_address': user3.mail_address,
-                'delete_flag': user3.delete_flag,
-                'created_add': str(localtime(user3.created_add)).replace(' ', 'T'),
-                'updated_add': str(localtime(user3.updated_add)).replace(' ', 'T')
-            }
-        ]
-        self.assertJSONEqual(response.content, expected_json_dict)
+        # APIリクエスト実行
+        response = self.client.get(self.URL, format='json')
+
+        # レスポンスの内容を検証
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, expected_json)
 
     def test_create_success(self):
         """ Usersモデルへの登録APIへのPOSTリクエスト (正常系) """
+        # 登録User情報
+        first_name = "test_first_name"
+        last_name = "test_last_name"
+        age = 99
+        mail_address = "test_address@example.com"
+
+        # リクエストパラメーター
         params = {
-            "first_name": "first_name",
-            "last_name": "last_name",
-            "age": 99,
-            "mail_address": "test_address@example.com"
+            "first_name": first_name,
+            "last_name": last_name,
+            "age": age,
+            "mail_address": mail_address
         }
+
+        # 実行前登録件数
         before_user_count = Users.objects.count()
 
+        # APIリクエスト実行
         response = self.client.post(self.URL, params, format='json')
 
-        self.assertEqual(Users.objects.count(), before_user_count+1 )
+        # レスポンスの内容を検証
         self.assertEqual(response.status_code, 201)
+
         user = Users.objects.latest('created_add')
-        expected_json_dict = {
+        expected_json = {
             'id': user.id,
             'first_name': user.first_name,
             'last_name': user.last_name,
@@ -90,10 +94,14 @@ class TestUserListCreateAPIView(APITestCase):
             'created_add': str(localtime(user.created_add)).replace(' ', 'T'),
             'updated_add': str(localtime(user.updated_add)).replace(' ', 'T')
         }
-        self.assertJSONEqual(response.content, expected_json_dict)
+        self.assertJSONEqual(response.content, expected_json)
 
-        user.delete()
+        # データベースの状態を検証
+        self.assertEqual(Users.objects.count(), before_user_count+1)
+        self.assertEqual(user.first_name, first_name)
+        self.assertEqual(user.last_name, last_name)
+        self.assertEqual(user.age, age)
+        self.assertEqual(user.mail_address, mail_address)
 
-    @classmethod
-    def tearDownClass(self):
+    def tearDown(self):
         Users.objects.all().delete()
