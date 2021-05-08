@@ -10,8 +10,7 @@ class TestUserListCreateAPIView(APITestCase):
     URL = '/api/users/'
 
     def test_user_list_success(self):
-        """ Usersモデルへの一覧取得APIへのGETリクエスト (正常系: 取得件数0件) """
-
+        """ Usersモデルへの一覧取得APIへのGETリクエスト (正常系: 取得件数3件) """
         # テスト用Userオブジェクト登録
         for i in range(3):
             Users.objects.create(
@@ -103,5 +102,24 @@ class TestUserListCreateAPIView(APITestCase):
         self.assertEqual(user.age, age)
         self.assertEqual(user.mail_address, mail_address)
 
-    def tearDown(self):
-        Users.objects.all().delete()
+    def test_create_bad_request(self):
+        """ Usersモデルへの登録APIへのPOSTリクエスト (異常系: バリデーションNG) """
+        # リクエストパラメーター
+        params = {
+            "first_name": "0123456789_0123456789_0123456789_",
+            "last_name": "test_last_name",
+            "age": 99,
+            "mail_address": "test_address@example.com"
+        }
+
+        # 実行前登録件数
+        before_user_count = Users.objects.count()
+
+        # APIリクエスト実行
+        response = self.client.post(self.URL, params, format='json')
+
+        # レスポンスの内容を検証
+        self.assertEqual(response.status_code, 400)
+
+        # データベースの状態を検証
+        self.assertEqual(Users.objects.count(), before_user_count)
